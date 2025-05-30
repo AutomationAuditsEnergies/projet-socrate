@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cours audio</title>
+  <p>offset = {{ offset }}</p>
+  <p>temps_restant = {{ temps_restant }}</p>
+
+  <style>
+    #chat {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 20px;
+      height: 200px;
+      overflow-y: auto;
+    }
+    #messages {
+      height: 150px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      background: #f9f9f9;
+      padding: 5px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    #question {
+      width: 70%;
+      margin-bottom: 5px;
+    }
+    #send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+  <h2>Bienvenue {{ prenom }} {{ nom }}</h2>
+
+  <div id="compte-a-rebours" style="color:red; font-weight:bold;"></div>
+
+  <button id="join-btn">J'entre dans la réunion</button>
+
+  <div id="audio-container" style="display: none;">
+    <audio id="audio" controls>
+      <source src="{{ url_for('static', filename='French Energy Market Explained.wav') }}" type="audio/wav">
+      Votre navigateur ne supporte pas l'audio.
+    </audio>
+  </div>
+
+  <br><br>
+  <button onclick="window.location.href='/logout'">🚪 Quitter le cours</button>
+
+  <input type="hidden" id="username" value="{{ prenom }} {{ nom }}">
+
+  <div id="chat" style="display:none;">
+    <div id="messages"></div>
+    <input id="question" placeholder="Écris ta question" />
+    <button id="send-btn" disabled>Envoyer</button>
+  </div>
+
+  <script>
+    const audioOffset = parseInt("{{ offset }}");
+    const joinBtn = document.getElementById("join-btn");
+    const audioContainer = document.getElementById("audio-container");
+    const audio = document.getElementById("audio");
+    const chat = document.getElementById("chat");
+    const sendBtn = document.getElementById("send-btn");
+    const questionInput = document.getElementById("question");
+    const messagesDiv = document.getElementById("messages");
+    const username = document.getElementById("username").value;
+
+    const socket = io();
+
+    joinBtn.addEventListener("click", () => {
+      joinBtn.style.display = "none";
+      audioContainer.style.display = "block";
+
+      if (audioOffset > 0 && audioOffset < audio.duration) {
+        audio.currentTime = audioOffset;
+      }
+
+      audio.play().catch(e => {
+        console.log("Lecture audio bloquée :", e);
+      });
+
+      audio.addEventListener('ended', () => {
+        chat.style.display = "block";
+        sendBtn.disabled = false;
+      });
+    });
+
+    function sendQuestion() {
+      const question = questionInput.value.trim();
+      if (!question) return;
+
+      socket.emit('send_question', { username: username, question: question });
+      questionInput.value = '';
+    }
+
+    sendBtn.addEventListener('click', sendQuestion);
+
+    questionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !sendBtn.disabled) {
+        e.preventDefault();
+        sendQuestion();
+      }
+    });
+
+    function addMessage(user, msg, time) {
+      const newMessage = document.createElement('div');
+      newMessage.textContent = `[${time}] ${user} : ${msg}`;
+      messagesDiv.appendChild(newMessage);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    socket.on('receive_question', (data) => {
+      addMessage(data.username, data.question, data.timestamp);
+    });
+
+// Réception et lecture de l'audio envoyé par le serveur
+socket.on("receive_audio", (data) => {
+  const audioB64 = data.audio_b64;
+  const byteArray = Uint8Array.from(atob(audioB64), c => c.charCodeAt(0));
+  const audioBlob = new Blob([byteArray], { type: "audio/mp3" });
+  const audioUrl = URL.createObjectURL(audioBlob);
+
+  // Affiche un lecteur audio dans le chat (en plus de jouer automatiquement)
+  const newMessage = document.createElement('div');
+  newMessage.innerHTML = `
+    [${new Date().toLocaleTimeString()}] Prof IA :
+    <audio controls>
+      <source src="${audioUrl}" type="audio/mp3">
+      Votre navigateur ne supporte pas l'audio.
+    </audio>
+  `;
+  messagesDiv.appendChild(newMessage);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+  // Lecture automatique
+  const audio = new Audio(audioUrl);
+  audio.play().catch(e => console.log("Erreur lecture audio:", e));
+});
+
+
+    // Détecter le rechargement pour éviter fausse déconnexion
+    let isReload = false;
+    window.addEventListener("pageshow", function (event) {
+      if (event.persisted || performance.navigation.type === 1) {
+        isReload = true;
+      }
+      const isBack = event.persisted || performance.navigation.type === 2;
+      if (isBack) {
+        window.location.href = "/logout";
+      }
+    });
+
+    window.addEventListener("beforeunload", function () {
+      if (!isReload) {
+        navigator.sendBeacon("/deconnexion-auto");
+      }
+    });
+
+    history.pushState(null, "", location.href);
+  </script>
+</body>
+</html>

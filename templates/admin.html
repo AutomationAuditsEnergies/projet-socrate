@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin - Historique</title>
+</head>
+<body>
+  <h2>Historique de Connexions</h2>
+
+  <!-- 🕒 Temps cumulé -->
+  <p><strong>Temps total cumulé :</strong> {{ temps_total }}</p>
+
+  <!-- 🔍 Formulaire de recherche -->
+  <form method="get" action="/admin">
+    <label for="prenom">Rechercher par prénom :</label>
+    <input type="text" id="prenom" name="prenom" value="{{ prenom_recherche }}">
+    <button type="submit">Rechercher</button>
+    <a href="/admin"><button type="button">Réinitialiser</button></a>
+  </form>
+
+  <br>
+
+  <table border="1">
+    <tr>
+      <th>ID</th>
+      <th>Nom</th>
+      <th>Prénom</th>
+      <th>Arrivée</th>
+      <th>Départ</th>
+      <th>Durée</th>
+    </tr>
+    {% for log in logs %}
+    <tr>
+      <td>{{ log[0] }}</td>
+      <td>{{ log[1] }}</td>
+      <td>{{ log[2] }}</td>
+      <td>{{ log[3] }}</td>
+      <td>{{ log[4] or "Encore connecté" }}</td>
+      <td>{{ log[5] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
