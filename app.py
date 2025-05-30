@@ -4,7 +4,6 @@ from flask_socketio import SocketIO, emit
 from datetime import datetime
 import sqlite3
 import os
-from datetime import datetime
 import requests
 
 # Heure fixe de lancement du cours (à adapter selon ton besoin)
