@@ -32,7 +32,7 @@ Le projet Socrate est une application web interactive destinée à la diffusion 
 4. Lancer le serveur avec :
 
     ```bash
-    python run.py
+    python3 run.py
     ```
 
 5. Accéder à l’application via http://localhost:5000

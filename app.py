@@ -1,10 +1,10 @@
-# app.py
 from flask import Flask, render_template, request, redirect, session, url_for
 from flask_socketio import SocketIO, emit
 from datetime import datetime
 import sqlite3
 import os
 import requests
+from rag_agent import rag_answer
 
 # Heure fixe de lancement du cours (à adapter selon ton besoin)
 heure_debut_cours = datetime(
@@ -16,10 +16,10 @@ app.secret_key = "secret_key"
 DB_PATH = "data/database.db"
 
 # SocketIO, async_mode eventlet dans run.py
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
+socketio = SocketIO(app, cors_allowed_origins = "*", async_mode = "eventlet")
 
 # Création de la BDD si elle n'existe pas
-os.makedirs("data", exist_ok=True)
+os.makedirs("data", exist_ok = True)
 conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 cursor.execute(
@@ -52,7 +52,7 @@ conn.close()
 def call_elevenlabs_agent(question):
     try:
         response = requests.post(
-            "http://127.0.0.1:6000/ask", json={"question": question}, timeout=10
+            "http://127.0.0.1:6000/ask", json = {"question": question}, timeout = 10
         )
         response.raise_for_status()
         data = response.json()
@@ -97,10 +97,10 @@ def video():
 
     return render_template(
         "video.html",
-        nom=session["nom"],
-        prenom=session["prenom"],
-        offset=offset,
-        temps_restant=temps_restant,
+        nom = session["nom"],
+        prenom = session["prenom"],
+        offset = offset,
+        temps_restant = temps_restant,
     )
 
 
@@ -180,8 +180,8 @@ def admin():
     return render_template(
         "admin.html",
         logs=logs_with_duration,
-        prenom_recherche=prenom_recherche,
-        temps_total=temps_total_format,
+        prenom_recherche = prenom_recherche,
+        temps_total = temps_total_format,
     )
 
 
@@ -212,13 +212,13 @@ def handle_send_question(data):
     emit(
         "receive_question",
         {"username": username, "question": question, "timestamp": timestamp},
-        broadcast=True,
+        broadcast = True,
     )
 
-    # Appel au microservice ElevenLabs via HTTP
+    '''# Appel au microservice ElevenLabs via HTTP
     try:
         response = requests.post(
-            "http://127.0.0.1:6000/ask", json={"question": question}, timeout=40
+            "http://127.0.0.1:6000/ask", json = {"question": question}, timeout = 40
         )
         response.raise_for_status()
         data = response.json()
@@ -236,12 +236,12 @@ def handle_send_question(data):
                 "question": response_text,
                 "timestamp": datetime.now().strftime("%H:%M:%S"),
             },
-            broadcast=True,
+            broadcast = True,
         )
 
         # Diffuser le flux audio base64 si présent
         if audio_b64:
-            emit("receive_audio", {"audio_b64": audio_b64}, broadcast=True)
+            emit("receive_audio", {"audio_b64": audio_b64}, broadcast = True)
 
     except Exception as e:
         print("Erreur lors de l'appel au microservice ElevenLabs:", e)
@@ -252,10 +252,36 @@ def handle_send_question(data):
                 "question": "Désolé, une erreur est survenue.",
                 "timestamp": datetime.now().strftime("%H:%M:%S"),
             },
-            broadcast=True,
+            broadcast = True,
+        )'''
+        
+    # Appel à l’agent RAG
+    try:
+        response_text = rag_answer(question)
+        print(f"[RAG RESPONSE] {username}: {question} -> {response_text}")
+        emit(
+            "receive_question",
+            {
+                "username": "Agent RAG",
+                "question": response_text,
+                "timestamp": datetime.now().strftime("%H:%M:%S"),
+            },
+            broadcast = True,
         )
+    except Exception as e:
+        print("Erreur RAG:", e)
+        emit(
+            "receive_question",
+            {
+                "username": "Agent RAG",
+                "question": "Désolé, une erreur est survenue avec le système RAG.",
+                "timestamp": datetime.now().strftime("%H:%M:%S"),
+            },
+            broadcast = True,
+        )
+
 
 
 if __name__ == "__main__":
     # Pour le lancement direct sans eventlet, mais pour WebSocket eventlet est recommandé
-    app.run(debug=True)
+    app.run(debug = True)
