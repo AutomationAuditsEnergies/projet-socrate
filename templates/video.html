@@ -108,6 +108,7 @@
 
     function addMessage(user, msg, time) {
       const newMessage = document.createElement('div');
+
       newMessage.textContent = `[${time}] ${user} : ${msg}`;
       messagesDiv.appendChild(newMessage);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
