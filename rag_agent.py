@@ -64,7 +64,7 @@ def rag_answer(question: str) -> str:
         # 💬 Simulation d'un temps de réponse humain
         base_delay = random.uniform(1.0, 2.0)
         length_delay = len(result) * 0.02 # 20ms par caractère
-        total_delay = min(base_delay + length_delay, 5.0)
+        total_delay = min(base_delay + length_delay, 4.5)
         time.sleep(total_delay)
         
         return result
