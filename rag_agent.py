@@ -20,7 +20,8 @@ qa_chain = RetrievalQA.from_chain_type(llm = llm, retriever = retriever)
 
 def rag_answer(question: str) -> str:
     try:
-        return qa_chain.invoke({"query": question})
+        response = qa_chain.invoke({"query": question})
+        return response["result"]
     except Exception as e:
         print("Erreur RAG:", e)
         return "Je ne peux pas répondre à ta question pour le moment."
