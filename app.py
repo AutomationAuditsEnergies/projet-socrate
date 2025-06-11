@@ -262,7 +262,7 @@ def handle_send_question(data):
         emit(
             "receive_question",
             {
-                "username": "Agent RAG",
+                "username": "Professeur",
                 "question": response_text,
                 "timestamp": datetime.now().strftime("%H:%M:%S"),
             },
@@ -273,7 +273,7 @@ def handle_send_question(data):
         emit(
             "receive_question",
             {
-                "username": "Agent RAG",
+                "username": "Professeur",
                 "question": "Désolé, une erreur est survenue avec le système RAG.",
                 "timestamp": datetime.now().strftime("%H:%M:%S"),
             },
