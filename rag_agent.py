@@ -48,7 +48,7 @@ llm = ChatOpenAI(
     model_name = "gpt-4",
     temperature = 0.7,
     openai_api_key = SECRET_KEY,
-    max_tokens = 1000,)
+    max_tokens = 500,)
 
 qa_chain = RetrievalQA.from_chain_type(
     llm = llm, 
