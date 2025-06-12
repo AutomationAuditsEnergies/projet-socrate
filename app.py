@@ -274,7 +274,7 @@ def handle_send_question(data):
             "receive_question",
             {
                 "username": "Professeur",
-                "question": "Désolé, une erreur est survenue avec le système RAG.",
+                "question": "Désolé, je ne peux plus répondre à vos questions.",
                 "timestamp": datetime.now().strftime("%H:%M:%S"),
             },
             broadcast = True,
