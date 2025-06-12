@@ -16,11 +16,11 @@ SECRET_KEY = os.getenv("OPENAI_API_KEY")
 
 # Prompt pour guider l'agent
 prompt_template = PromptTemplate(
-    input_variables=["context", "question"],
-    template="""
+    input_variables = ["context", "question"],
+    template = """
     Tu es un assistant pédagogique, bienveillant et naturel. Tu aides l'utilisateur à comprendre le contenu du cours suivant. 
     Tu ne dois utiliser que les informations présentes dans ce contenu pour répondre aux questions, sauf s'il s'agit de formules de politesse (bonjour, merci, etc.), auxquelles tu peux répondre naturellement.
-    Tu tutoies les étudiants et tu réponds de manière simple et directe, comme un professeur qui explique à un élève.
+    Tu dois tutoyer les étudiants et tu réponds de manière simple et directe, comme un professeur qui explique à un élève.
 
     Si la question dépasse le cadre du cours, tu peux répondre de manière polie et honnête avec des formulations naturelles, comme :
 
@@ -48,7 +48,7 @@ llm = ChatOpenAI(
     model_name = "gpt-4",
     temperature = 0.7,
     openai_api_key = SECRET_KEY,
-    max_tokens = 1000,)
+    max_tokens = 500,)
 
 qa_chain = RetrievalQA.from_chain_type(
     llm = llm, 
